@@ -10,52 +10,68 @@ class Nodo:
         self.conexiones = []
         
     def information(self):
-        return f"Nodo : {self.Dato} \nDirecciones: {self.Direcciones} \nPuentes: {self.Puentes} \nConexiones: {[n.Dato for n in self.conexiones]}"
+        return f"Nodo : {self.Dato} \nDirecciones: {self.Direcciones} \nPuentes: {self.Puentes} \nConexiones: {[n.Dato for n in self.conexiones]}\nX :{self.X}\nY :{self.Y}"
     
-    def conectar(self,Hashiwokakero,Nodo, Dir, Cantidad=1):
-        if isinstance(self.Dato,int):
-            if isinstance(Nodo.Dato,int):
+    def conectar(self, Hashiwokakero, Nodo, Dir, Cantidad=1):
+        print("Recibi:")
+        print(self.information())
+        print(Nodo.information())
+        if isinstance(self.Dato, int):
+            if isinstance(Nodo.Dato, int):
                 if self.X != Nodo.X and self.Y != Nodo.Y:
-                    return "Los puntos no están en la misma fila o columna."
+                    return -1  # Los puntos no están en la misma fila o columna.
                 if not Hashiwokakero.verificar_camino(Nodo.X, Nodo.Y, self.X, self.Y):
-                    return "Camino bloqueado."
-                if self.Direcciones[Dir]==2:
-                    return "Máximo de puentes en el punto de origen."
-                if Nodo.Direcciones[(Dir+2)%4]==2:
-                    return "Máximo de puentes en el punto de destino."
-                
-                if self.Puentes+Cantidad<=self.Dato:
-                    if Nodo.Puentes+Cantidad<=Nodo.Dato:
-                        self.Puentes+=Cantidad
-                        self.Direcciones[Dir]+=1
-                        Nodo.Puentes+=Cantidad
-                        Nodo.Direcciones[((Dir+2) % 4 )] += 1
+                    return -2  # Camino bloqueado.
+                if self.Direcciones[Dir] == 2:
+                    return -3  # Máximo de puentes en el punto de origen.
+                if Nodo.Direcciones[(Dir + 2) % 4] == 2:
+                    return -4  # Máximo de puentes en el punto de destino.
+
+                if self.Puentes + Cantidad <= self.Dato:
+                    if Nodo.Puentes + Cantidad <= Nodo.Dato:
+                        self.Puentes += Cantidad
+                        self.Direcciones[Dir] += 1
+                        Nodo.Puentes += Cantidad
+                        Nodo.Direcciones[(Dir + 2) % 4] += 1
                         self.conectar_nodo(Nodo)
                         Nodo.conectar_nodo(self)
                         Hashiwokakero.formar_camino(Nodo.X, Nodo.Y, self.X, self.Y)
-                        if Nodo.Puentes==Nodo.Dato:
-                            Nodo.Full=True
-                        if self.Puentes==self.Dato:
-                            self.Full=True    
-                        return "Islas Conectadas."
+                        if Nodo.Puentes == Nodo.Dato:
+                            Nodo.Full = True
+                        if self.Puentes == self.Dato:
+                            self.Full = True
+                        return 1  # Islas conectadas.
                     else:
-                        return "Máximo de puentes en el punto de destino."
-
+                        return -4  # Máximo de puentes en el punto de destino.
                 else:
-                    return "Máximo de puentes en el punto de origen."
+                    return -3  # Máximo de puentes en el punto de origen.
             else:
-                return "Selecciona una isla objetivo valida."
+                return -5  # Selecciona una isla objetivo válida.
         else:
-            return "No seleccionaste una isla inicial valida."
-    
+            return -6  # No seleccionaste una isla inicial válida.
     def conectar_nodo(self, Nodo):
-        if Nodo not in self.conexiones:
-            self.conexiones.append(Nodo)
+            if Nodo not in self.conexiones:
+                self.conexiones.append(Nodo)
 
-
+class Solicitud:
+    def __init__(self):
+        self.x1=-1
+        self.x2=-1
+        self.y1=-1
+        self.y2=-1
+    def validate(self):
+        if self.x1 == -1 or self.x2 == -1 or self.y1 == -1 or self.y2 == -1:
+            return False
+        return True
+    def empty(self):
+        self.x1 = -1
+        self.x2 = -1
+        self.y1 = -1
+        self.y2 = -1
 class Hashiwokakero:
     def __init__(self):
         self.Matriz = []
+        self.created =False
     def verificar_victoria(self):
         for i in range(len(self.Matriz)):
             for j in range(len((self.Matriz))):
@@ -67,11 +83,11 @@ class Hashiwokakero:
         # Verificar que no haya nada en el camino
         if x1 == x2:
             for j in range(min(y1, y2)+1, max(y1, y2)):
-                if self.Matriz[x1][j].Dato != " ":
+                if isinstance(self.Matriz[x1][j].Dato,int):
                     return False
         elif y1 == y2:
             for i in range(min(x1, x2)+1, max(x1, x2)):
-                if self.Matriz[i][y1].Dato != " ":
+                if isinstance(self.Matriz[i][y1].Dato ,int ):
                     return False
         return True
     def formar_camino(self, x1, y1, x2, y2):
@@ -97,6 +113,7 @@ class Hashiwokakero:
         print(len(self.Matriz))
         return data
     def convertir(self, archivo):
+        self.Matriz=[]
         with open(archivo) as f:
             lineas = f.readlines()
 
