@@ -10,7 +10,7 @@ dpg.create_context()
 dpg.set_global_font_scale(1.2)
 with dpg.theme() as global_theme:
     with dpg.theme_component(dpg.mvWindowAppItem):
-        dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (200, 200, 200), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (200, 200, 200))
 with dpg.theme() as disabled_theme:
     with dpg.theme_component(dpg.mvButton, enabled_state=False):
         dpg.add_theme_color(dpg.mvThemeCol_Button, [37, 37, 38])
@@ -46,6 +46,14 @@ with dpg.window(no_title_bar=True,modal=True,show=False,tag="Ganaste"):
                  dpg.add_spacer(height=10)
                  dpg.add_separator()
                  dpg.add_button(label="Close", callback=lambda: end())
+
+with dpg.window(no_title_bar=True,modal=True,show=False,tag="Perdiste"):
+                 dpg.add_separator()
+                 dpg.add_spacer(height=10)
+                 dpg.add_text("No lograste conectar todos los puentes :( perdiste!.")
+                 dpg.add_spacer(height=10)
+                 dpg.add_separator()
+                 dpg.add_button(label="Close", callback=lambda: end())                 
 # definimos una función que crea una ventana emergente para cada mensaje de error
 def create_popup(name, message):
     def popup():
@@ -80,8 +88,8 @@ def cargarMatriz():
                         for j in range(n):
                             enable=True
                             if not isinstance(hashi.Matriz[i][j].Dato,int):
-                                 enable=False
-                            id=f"{i}{j}"
+                                 enable=False 
+                            id=f"{i},{j}"
                             dpg.add_button(tag=id,label=f"{hashi.Matriz[i][j].Dato}", width=30, height=30,track_offset=0.5,enabled=enable,callback=lambda sender: procesarIsla(sender))
                             with dpg.tooltip(id):
                                 dpg.add_text(id)
@@ -90,6 +98,7 @@ def cargarMatriz():
             traceback.print_exc()
             dpg.configure_item("modal_id", show=True)
 def procesarIsla(sender):
+    sender = sender.split(",")
     x=int(sender[0])
     y=int(sender[1])
     print("presionaste ",x,y)
@@ -110,13 +119,20 @@ def procesarIsla(sender):
        else:
             DICPOPUPS.get(returnValue)()
             actualizarBotones()
+
+            
 def actualizarBotones():
     n=len(hashi.Matriz)
     for i in range(n):
         for j in range(n):
-            dpg.set_item_label(f"{i}{j}", hashi.Matriz[i][j].Dato)
-    if hashi.verificar_victoria():
-        dpg.configure_item("Ganaste", show=True)
+            dpg.set_item_label(f"{i},{j}", hashi.Matriz[i][j].Dato)
+    validar= hashi.verificar_victoria()
+    if validar is True or validar is None:
+        if validar is True:
+            dpg.configure_item("Ganaste", show=True)
+        else: 
+            dpg.configure_item("Perdiste", show=True)
+             
         
         
         
