@@ -9,7 +9,16 @@ class Nodo:
         self.Full=False
         
     def information(self):
-       return "Nodo: {}\nDirecciones: {}\nPuentes: {}\nConexiones: {}\nX: {}\nY: {}".format(self.Dato, self.Direcciones, self.Puentes, self.X, self.Y)
+        dato_color = '\033[30m'  # Pred
+        if self.Dato == '-' or self.Dato == '|':
+            dato_color = '\033[32m'  # verde
+        elif self.Dato == '=' or self.Dato == '||':
+            dato_color = '\033[31m'  # rojo
+
+        reset_color = '\033[0m'  # resetear el color a predeterminado
+
+        return "Nodo: {}{}\nDirecciones: {}\nPuentes: {}\nConexiones: {}\nX: {}\nY: {}{}".format(dato_color, self.Dato, self.Direcciones, self.Puentes, self.X, self.Y)
+
 
     def conectar(self, Hashiwokakero, Nodo, Dir, Cantidad=1):
         if not isinstance(self.Dato, int):
@@ -88,6 +97,7 @@ class Hashiwokakero:
     def __init__(self):
         self.Matriz = []
         self.created =False
+        self.visitados = []
 
     def verificar_victoria(self):
         for i in range(len(self.Matriz)):
@@ -198,13 +208,30 @@ class Hashiwokakero:
         data = ""
         matriz = self.Matriz
         matriz_len = len(matriz)
-        
+
         for i in range(matriz_len):
             for j in range(matriz_len):
-                data += "[{}]({},{})\t".format(matriz[i][j].Dato, matriz[i][j].X, matriz[i][j].Y)
+                dato = matriz[i][j].Dato
+                dato_color = '\033[30m'  # verde
+
+                if dato == '-' or dato == '|':
+                    dato_color = '\033[32m'  # verde
+                elif dato == '=' or dato == '||':
+                    dato_color = '\033[33m'  # rojo
+                elif matriz[i][j].Full:
+                    dato_color = '\033[31m'  # rojo
+                elif not matriz[i][j].Full and dato != ' ':
+                    dato_color = '\033[35m'  # rojo
+                
+                reset_color = '\033[0m'  # resetear el color a predeterminado
+
+                data += "{}[{}]({},{}){}\t".format(dato_color, dato, matriz[i][j].X, matriz[i][j].Y, reset_color)
             data += "\n"
-        
+
         return data
+
+    
+
     def convertir(self, archivo):
         self.Matriz=[]
         with open(archivo) as f:
@@ -288,14 +315,13 @@ class Hashiwokakero:
     def resolver(self):
         # Encontrar una isla de inicio
         inicio = None
-
+        max = 0
         for i in range(len(self.Matriz)):
             for j in range(len(self.Matriz[0])):
                 if isinstance(self.Matriz[i][j].Dato, int):
-                    inicio = (i, j)
-                    break
-            if inicio:
-                break
+                    if max<self.Matriz[i][j].Dato:
+                        inicio = (i, j)
+                        max = self.Matriz[i][j].Dato
 
         if not inicio:
             print("No se encontró una isla de inicio")
@@ -316,45 +342,55 @@ class Hashiwokakero:
         else:
             print("No se ha encontrado una solución")
     
-
-    
     def busqueda_exhaustiva(self, nodo):
         # Verificar si se ha alcanzado el objetivo
         if self.verificar_victoria():
             exit()
-            return True
 
         x, y = nodo
-
+        
         # Obtener los vecinos del nodo actual
         vecinos = self.obtener_vecinos(x, y)
 
+        def custom_key(item):
+            x, y = item
+            bridges = self.Matriz[x][y].Direcciones
+            return (sum(bridges), -self.Matriz[x][y].Dato)
+        vecinos = sorted(vecinos, key=custom_key)
+
+        counter = 0
         # Procesar los vecinos no visitados
         for vecino in vecinos:
             # Verificar si el vecino ya ha sido visitado
+            if vecino not in self.visitados:
+                # Realizar la conexión con el vecino
+                #print("Conectar", vecino, "a", x, ",", y)
+                result =   self.Matriz[x][y].conectar(self, self.Matriz[vecino[0]][vecino[1]], self.calcular_direccion(x, y, vecino[0], vecino[1]))
+                #print("Resultado",result)
+                self.visitados.append(vecino)
+                if result != 1:
+                    #print("Removing",vecino)
+                    self.visitados.remove(vecino)
+                print(self.information())
 
-            # Realizar la conexión con el vecino
-            print("Conectar", vecino, "a", x, ",", y)
-            print("Resultado", self.Matriz[x][y].conectar(self, self.Matriz[vecino[0]][vecino[1]], self.calcular_direccion(x, y, vecino[0], vecino[1])))
-            print(self.information())
+                # Marcar el vecino como visitado
+                
+                counter+=1
+                # Realizar la llamada recursiva para el vecino
+                
+                solucion_encontrada = self.busqueda_exhaustiva(vecino)
+                if not solucion_encontrada:
+                    pass
+                else:
+                    # Deshacer la conexión con el vecino (backtracking)
+                    #print("Desconectar", vecino, "a", x, ",", y)
+                    self.Matriz[x][y].desconectar(self, self.Matriz[vecino[0]][vecino[1]], self.calcular_direccion(x, y, vecino[0], vecino[1]))
+                    print(self.information())
+                        # Desmarcar el vecino como visitado
+                    self.visitados.remove(vecino)
 
-            # Marcar el vecino como visitado
-            self.Matriz[vecino[0]][vecino[1]].visitado = True
-
-            # Realizar la llamada recursiva para el vecino
-            solucion_encontrada = self.busqueda_exhaustiva(vecino)
-    
-
-            # Deshacer la conexión con el vecino (backtracking)
-            print("Desconectar", vecino, "a", x, ",", y)
-            self.Matriz[x][y].desconectar(self, self.Matriz[vecino[0]][vecino[1]], self.calcular_direccion(x, y, vecino[0], vecino[1]))
-            print(self.information())
-
-            # Desmarcar el vecino como visitado
-            self.Matriz[vecino[0]][vecino[1]].visitado = False
-
-            # Si se encontró una solución válida, retornar True
-            if solucion_encontrada:
-                return True
-
+                # Si se encontró una solución válida, retornar True
+                if solucion_encontrada:
+                    return True
+        #print("Breaking", nodo)
         return False
