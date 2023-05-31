@@ -239,7 +239,7 @@ class Hashiwokakero:
                 if self.validar(x,y,x,j):
                     vecinos.append((x, j))
                 break
-            elif "|" in self.Matriz[x][j].Dato :
+            elif self.Matriz[x][j].Dato in "-=":
                 break
 
         # Buscar en la misma fila hacia la derecha
@@ -248,7 +248,7 @@ class Hashiwokakero:
                 if self.validar(x,y,x,j):
                     vecinos.append((x, j))
                 break
-            elif "|" in self.Matriz[x][j].Dato :
+            elif self.Matriz[x][j].Dato in "-=":
                 break
 
         # Buscar en la misma columna hacia arriba
@@ -257,7 +257,7 @@ class Hashiwokakero:
                 if self.validar(x,y,i,y):
                     vecinos.append((i, y))
                 break
-            elif  self.Matriz[i][y].Dato in "-=":
+            elif "|" in self.Matriz[i][y].Dato:
                 break
 
         # Buscar en la misma columna hacia abajo
@@ -266,7 +266,7 @@ class Hashiwokakero:
                 if self.validar(x,y,i,y):
                     vecinos.append((i, y))
                 break
-            elif  self.Matriz[i][y].Dato in "-=":
+            elif "|" in self.Matriz[i][y].Dato:
                 break
 
         return vecinos
@@ -282,7 +282,6 @@ class Hashiwokakero:
             else:
                 return 2 # Oeste
         else:
-            print("LOKA")
             return -1 # los puntos no están en la misma fila/columna
     
     def resolver(self):
@@ -321,7 +320,6 @@ class Hashiwokakero:
     def busqueda_exhaustiva(self, nodo):
         # Verificar si se ha alcanzado el objetivo
         if self.verificar_victoria():
-            exit()
             return True
 
         x, y = nodo
@@ -331,30 +329,21 @@ class Hashiwokakero:
 
         # Procesar los vecinos no visitados
         for vecino in vecinos:
-            # Verificar si el vecino ya ha sido visitado
-
             # Realizar la conexión con el vecino
-            print("Conectar", vecino, "a", x, ",", y)
-            print("Resultado", self.Matriz[x][y].conectar(self, self.Matriz[vecino[0]][vecino[1]], self.calcular_direccion(x, y, vecino[0], vecino[1])))
-            print(self.information())
-
-            # Marcar el vecino como visitado
-            self.Matriz[vecino[0]][vecino[1]].visitado = True
-
+            
+            #print(self.information())
             # Realizar la llamada recursiva para el vecino
-            solucion_encontrada = self.busqueda_exhaustiva(vecino)
-    
-
-            # Deshacer la conexión con el vecino (backtracking)
-            print("Desconectar", vecino, "a", x, ",", y)
-            self.Matriz[x][y].desconectar(self, self.Matriz[vecino[0]][vecino[1]], self.calcular_direccion(x, y, vecino[0], vecino[1]))
-            print(self.information())
-
-            # Desmarcar el vecino como visitado
-            self.Matriz[vecino[0]][vecino[1]].visitado = False
-
+            try:
+                solucion_encontrada = self.busqueda_exhaustiva(vecino)
+            except:
+                return False
             # Si se encontró una solución válida, retornar True
             if solucion_encontrada:
                 return True
+
+            # Deshacer la conexión con el vecino (backtracking)
+            
+            self.Matriz[x][y].desconectar(self,self.Matriz[vecino[0]][vecino[1]], self.calcular_direccion(x,y, vecino[0], vecino[1]))
+            
 
         return False

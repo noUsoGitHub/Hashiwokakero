@@ -2,24 +2,32 @@ from clases.structures import Nodo,Hashiwokakero
 from clases.speedCommons import maths
 
 
-# Creamos una instancia de la clase Hashiwokakero y cargamos la matriz de nodos
+
+# Carga basica:
 hashi = Hashiwokakero()
 hashi.convertir("test.txt")
+print(hashi.information())
+# FIN CARGA
+
+hashi.resolver()
+
 
 # Imprimimos la matriz resultante
-print(hashi.information())
+'''
+# Creamos una instancia de la clase Hashiwokakero y cargamos la matriz de nodos
+
+
 while True:
-    x1 = int(input("Punto X1: "))
-    y1 = int(input("Punto Y1: "))
-    x2 = int(input("Punto X2: "))
-    y2 = int(input("Punto Y2: "))
+    x1, y1, x2, y2 = map(int, input("Punto X1, Y1, X2, Y2: ").split())
     retorno= hashi.Matriz[x1][y1].conectar(hashi,hashi.Matriz[x2][y2],maths.calcular_direccion(x1,x2,y1,y2))
     import os
     os.system('cls')
     print(retorno)
     print(hashi.information())
-    if hashi.verificar_victoria():
-        print("Ganaste!!!!")
+    victoria =  hashi.verificar_victoria() 
+    if victoria is True or victoria is None :
         exit()
-
         
+
+
+#'''
